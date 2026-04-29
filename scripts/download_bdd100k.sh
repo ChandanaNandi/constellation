@@ -143,7 +143,7 @@ except Exception as e:
 PYTHON_SCRIPT
 
     # Run download script
-    SUBSET_SIZE=$SUBSET_SIZE DATA_DIR=$DATA_DIR python "$DATA_DIR/download_hf.py"
+    SUBSET_SIZE=$SUBSET_SIZE DATA_DIR=$DATA_DIR python3 "$DATA_DIR/download_hf.py"
 
     # Cleanup
     rm -f "$DATA_DIR/download_hf.py"
