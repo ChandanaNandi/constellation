@@ -2,7 +2,6 @@
 name = "constellation-backend"
 version = "0.1.0"
 description = "Multi-task vision system for autonomous driving scenes"
-readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "MIT"}
 dependencies = [
@@ -44,6 +43,12 @@ ml = [
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
 
 [tool.ruff]
 line-length = 100
