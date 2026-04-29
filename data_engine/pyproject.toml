@@ -1,0 +1,26 @@
+[project]
+name = "constellation-data-engine"
+version = "0.1.0"
+description = "Data loading and auto-labeling for Constellation"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+dependencies = [
+    "torch>=2.1.2",
+    "torchvision>=0.16.2",
+    "ultralytics>=8.1.0",
+    "mobile-sam @ git+https://github.com/ChaoningZhang/MobileSAM.git",
+    "pycocotools>=2.0.7",
+    "opencv-python>=4.9.0.80",
+    "pillow>=10.2.0",
+    "numpy>=1.26.3",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["data_engine"]
