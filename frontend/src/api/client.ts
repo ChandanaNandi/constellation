@@ -28,6 +28,16 @@ export const api = {
     return response.data
   },
 
+  getImage: async (id: number) => {
+    const response = await apiClient.get(`/api/images/${id}`)
+    return response.data
+  },
+
+  autoLabel: async (id: number, options?: { use_sam?: boolean; conf_threshold?: number }) => {
+    const response = await apiClient.post(`/api/images/${id}/auto-label`, options || {})
+    return response.data
+  },
+
   // Models
   getModels: async () => {
     const response = await apiClient.get('/api/models')
