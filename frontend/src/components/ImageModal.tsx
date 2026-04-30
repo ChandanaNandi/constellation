@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useRef, useState } from 'react'
 import { X, Tag, Calendar, Database } from 'lucide-react'
 
 interface Label {
@@ -38,63 +38,45 @@ const COLORS = [
 ]
 
 export default function ImageModal({ imageDetail, onClose }: ImageModalProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const imageRef = useRef<HTMLImageElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [imageLoaded, setImageLoaded] = useState(false)
+  const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0, scale: 1 })
 
-  useEffect(() => {
-    if (!imageDetail || !canvasRef.current || !imageRef.current) return
+  // Calculate scale when image loads
+  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget
+    const container = containerRef.current
+    if (!container) return
 
-    const canvas = canvasRef.current
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
+    const maxWidth = container.clientWidth - 32
+    const maxHeight = window.innerHeight * 0.6
 
-    const img = imageRef.current
+    const scale = Math.min(maxWidth / img.naturalWidth, maxHeight / img.naturalHeight, 1)
 
-    const drawBoxes = () => {
-      canvas.width = img.naturalWidth
-      canvas.height = img.naturalHeight
+    setImageDimensions({
+      width: img.naturalWidth,
+      height: img.naturalHeight,
+      scale
+    })
+    setImageLoaded(true)
+  }
 
-      // Draw image
-      ctx.drawImage(img, 0, 0)
-
-      // Draw bounding boxes from labels
-      imageDetail.labels.forEach((label) => {
-        const boxes = label.data.boxes || []
-        const classNames = label.data.class_names || []
-        const confidences = label.data.confidences || []
-
-        boxes.forEach((box, i) => {
-          const [x1, y1, x2, y2] = box
-          const color = COLORS[i % COLORS.length]
-          const className = classNames[i] || 'object'
-          const conf = confidences[i]
-
-          // Draw rectangle
-          ctx.strokeStyle = color
-          ctx.lineWidth = 3
-          ctx.strokeRect(x1, y1, x2 - x1, y2 - y1)
-
-          // Draw label background
-          const labelText = conf ? `${className} ${(conf * 100).toFixed(0)}%` : className
-          ctx.font = 'bold 14px sans-serif'
-          const textWidth = ctx.measureText(labelText).width
-
-          ctx.fillStyle = color
-          ctx.fillRect(x1, y1 - 22, textWidth + 8, 22)
-
-          // Draw label text
-          ctx.fillStyle = 'white'
-          ctx.fillText(labelText, x1 + 4, y1 - 6)
-        })
+  // Get all boxes from all labels
+  const allBoxes: { box: number[], className: string, confidence: number, colorIndex: number }[] = []
+  let colorIndex = 0
+  imageDetail?.labels.forEach((label) => {
+    const boxes = label.data.boxes || []
+    const classNames = label.data.class_names || []
+    const confidences = label.data.confidences || []
+    boxes.forEach((box, i) => {
+      allBoxes.push({
+        box,
+        className: classNames[i] || 'object',
+        confidence: confidences[i] || 0,
+        colorIndex: colorIndex++
       })
-    }
-
-    if (img.complete) {
-      drawBoxes()
-    } else {
-      img.onload = drawBoxes
-    }
-  }, [imageDetail])
+    })
+  })
 
   if (!imageDetail) return null
 
@@ -125,28 +107,62 @@ export default function ImageModal({ imageDetail, onClose }: ImageModalProps) {
 
         {/* Content */}
         <div className="flex flex-col lg:flex-row">
-          {/* Image with canvas overlay */}
-          <div className="flex-1 p-4 bg-slate-900 flex items-center justify-center relative">
-            <img
-              ref={imageRef}
-              src={`http://localhost:8000/api/images/${image.id}/file`}
-              alt={image.filename}
-              className="hidden"
-              crossOrigin="anonymous"
-            />
-            <canvas
-              ref={canvasRef}
-              className="max-w-full max-h-[60vh] object-contain"
-            />
-            {labels.length === 0 && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <img
-                  src={`http://localhost:8000/api/images/${image.id}/file`}
-                  alt={image.filename}
-                  className="max-w-full max-h-[60vh] object-contain"
-                />
-              </div>
-            )}
+          {/* Image with SVG overlay */}
+          <div ref={containerRef} className="flex-1 p-4 bg-slate-900 flex items-center justify-center">
+            <div className="relative" style={{
+              width: imageLoaded ? imageDimensions.width * imageDimensions.scale : 'auto',
+              height: imageLoaded ? imageDimensions.height * imageDimensions.scale : 'auto'
+            }}>
+              <img
+                src={`http://localhost:8000/api/images/${image.id}/file`}
+                alt={image.filename}
+                className="max-w-full max-h-[60vh] object-contain"
+                onLoad={handleImageLoad}
+              />
+              {/* SVG overlay for bounding boxes */}
+              {imageLoaded && allBoxes.length > 0 && (
+                <svg
+                  className="absolute top-0 left-0 pointer-events-none"
+                  width={imageDimensions.width * imageDimensions.scale}
+                  height={imageDimensions.height * imageDimensions.scale}
+                  viewBox={`0 0 ${imageDimensions.width} ${imageDimensions.height}`}
+                >
+                  {allBoxes.map((item, idx) => {
+                    const [x1, y1, x2, y2] = item.box
+                    const color = COLORS[item.colorIndex % COLORS.length]
+                    return (
+                      <g key={idx}>
+                        <rect
+                          x={x1}
+                          y={y1}
+                          width={x2 - x1}
+                          height={y2 - y1}
+                          fill="none"
+                          stroke={color}
+                          strokeWidth={3}
+                        />
+                        <rect
+                          x={x1}
+                          y={y1 - 22}
+                          width={item.className.length * 8 + 45}
+                          height={22}
+                          fill={color}
+                        />
+                        <text
+                          x={x1 + 4}
+                          y={y1 - 6}
+                          fill="white"
+                          fontSize="14"
+                          fontWeight="bold"
+                        >
+                          {item.className} {(item.confidence * 100).toFixed(0)}%
+                        </text>
+                      </g>
+                    )
+                  })}
+                </svg>
+              )}
+            </div>
           </div>
 
           {/* Sidebar */}
