@@ -147,24 +147,24 @@ Where σᵢ is a learned parameter for each task, automatically balancing:
 
 | Component | Parameters |
 |-----------|-----------|
-| Backbone (EfficientNet-B0) | 3.6M |
-| Detection Head | 4.9M |
-| Lane Segmentation | ~1.5M |
-| Drivable Segmentation | ~1.5M |
-| Depth Head | ~1.5M |
-| Traffic Light Head | ~50K |
-| **Total** | **~13M** |
+| Backbone (EfficientNet-B0) | 3,595,388 |
+| Detection Head | 4,878,607 |
+| Lane Segmentation | 667,394 |
+| Drivable Segmentation | 667,394 |
+| Depth Head | 667,617 |
+| Traffic Light Head | 83,204 |
+| **Total** | **10,559,604** |
 
 ## Implementation Status
 
 - [x] **Backbone:** EfficientNet-B0 with multi-scale extraction
 - [x] **Detection Head:** FCOS-style anchor-free
-- [ ] **Lane Segmentation:** U-Net decoder
-- [ ] **Drivable Area:** U-Net decoder
-- [ ] **Depth Head:** Regression decoder
-- [ ] **Traffic Light:** Classification head
-- [ ] **Multi-Task Loss:** Uncertainty weighting
-- [ ] **Full HydraNet:** Assembly + forward pass
+- [x] **Lane Segmentation:** U-Net decoder
+- [x] **Drivable Area:** U-Net decoder
+- [x] **Depth Head:** Regression decoder
+- [x] **Traffic Light:** Classification head
+- [x] **Multi-Task Loss:** Uncertainty weighting (Kendall et al. 2018)
+- [x] **Full HydraNet:** Assembly + forward pass verified
 
 ## Usage
 
@@ -191,4 +191,4 @@ traffic = outputs['traffic_light'] # (B, 4)
 
 ---
 
-*Last updated: Phase 2 - Day 3*
+*Last updated: Phase 2 Complete*
