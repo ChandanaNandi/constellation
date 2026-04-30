@@ -6,7 +6,14 @@
 
 ## Overview
 
-<!-- TODO: Add project description after Phase 1 -->
+Constellation is an end-to-end autonomous driving perception system that demonstrates:
+
+- **Auto-labeling Pipeline**: YOLOv8 object detection + MobileSAM segmentation
+- **Multi-task Learning**: Shared backbone with task-specific heads (detection, lanes, depth)
+- **Shadow Mode**: Compare model predictions against ground truth for validation
+- **Data Engine**: Active learning loop to identify and fix hard cases
+
+**Tech Stack**: Python, PyTorch, FastAPI, React, PostgreSQL, Docker
 
 ---
 
@@ -30,7 +37,7 @@ See [docs/architecture.md](docs/architecture.md) for detailed architecture docum
 
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/constellation.git
+git clone https://github.com/ChandanaNandi/constellation.git
 cd constellation
 
 # Copy environment file
@@ -61,7 +68,7 @@ npm run dev
 
 ## Roadmap
 
-- [ ] **Phase 1:** Foundation & Data Engine
+- [x] **Phase 1:** Foundation & Data Engine
 - [ ] **Phase 2:** Multi-Task Model Architecture
 - [ ] **Phase 3:** Training & Cloud GPU
 - [ ] **Phase 4:** Shadow Mode + Quantization
