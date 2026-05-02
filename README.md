@@ -9,9 +9,9 @@
 
 Built with PyTorch. Trained on BDD100K. Designed for real-world deployment.
 
-![Constellation Detection Demo](assets/hero.jpg)
+![Constellation Detection Demo](assets/demo.gif)
 
-*Real-time object detection on driving scenes: cars, traffic lights, signs, and pedestrians.*
+*Multi-task object detection on BDD100K driving scenes — cars, traffic lights, signs, and pedestrians.*
 
 ---
 
