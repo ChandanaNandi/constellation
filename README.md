@@ -34,7 +34,7 @@ Built with PyTorch. Trained on BDD100K. Designed for real-world deployment.
 | Classification Loss | 0.43 → 0.24 |
 | Model Size | 8.5M parameters |
 
-*Trained on BDD100K with 10 object classes. Full training on 70K images in progress.*
+*Trained on a 1,000-image subset of BDD100K (10 object classes) to validate the architecture and training pipeline. Cloud GPU infrastructure validated on NVIDIA H100; full-scale training deprioritized to focus on multi-task expansion (Phase 4).*
 
 ![Detection Example](assets/detection_example.jpg)
 
