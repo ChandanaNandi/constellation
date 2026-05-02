@@ -3,9 +3,9 @@ services:
     image: postgres:15
     container_name: constellation-postgres
     environment:
-      POSTGRES_USER: constellation
-      POSTGRES_PASSWORD: constellation_dev
-      POSTGRES_DB: constellation
+      POSTGRES_USER: ${POSTGRES_USER:-constellation}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_DB: ${POSTGRES_DB:-constellation}
     ports:
       - "5432:5432"
     volumes:
@@ -37,7 +37,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql+asyncpg://constellation:constellation_dev@postgres:5432/constellation
+      - DATABASE_URL=${DATABASE_URL:-postgresql+asyncpg://constellation:changeme@postgres:5432/constellation}
       - REDIS_URL=redis://redis:6379/0
       - PYTHONPATH=/app
     depends_on:
