@@ -1,0 +1,23 @@
+# Constellation - HydraNet Training Requirements
+# For cloud GPU (CUDA) training
+
+# Core ML
+torch>=2.0.0
+torchvision>=0.15.0
+torchmetrics>=1.0.0
+
+# Model
+timm>=1.0.0
+
+# Data
+numpy>=1.24.0
+pillow>=10.0.0
+
+# Training utilities
+tqdm>=4.65.0
+
+# Logging (optional but recommended)
+wandb>=0.15.0
+
+# For faster data loading on Linux
+# opencv-python>=4.8.0
