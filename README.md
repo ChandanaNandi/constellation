@@ -1,18 +1,42 @@
 # Constellation
 
+[![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://python.org)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-red.svg)](https://pytorch.org)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Status](https://img.shields.io/badge/Status-Active-brightgreen.svg)]()
+
 **Multi-task vision system for autonomous driving, inspired by Tesla's HydraNet architecture.**
 
 Built with PyTorch. Trained on BDD100K. Designed for real-world deployment.
 
+![Constellation Detection Demo](assets/hero.jpg)
+
+*Real-time object detection on driving scenes: cars, traffic lights, signs, and pedestrians.*
+
 ---
 
-## What This Project Demonstrates
+## Highlights
 
-- **HydraNet-style Architecture**: Shared EfficientNet-B0 backbone with task-specific heads, enabling efficient multi-task inference
-- **FCOS Anchor-Free Detection**: Modern anchor-free object detection with multi-scale feature processing (P3/P4/P5)
-- **Production Training Pipeline**: Focal loss with proper normalization, mAP evaluation, W&B experiment tracking
-- **Cloud GPU Workflow**: Full training infrastructure for NVIDIA H100 on RunPod with Docker and persistent storage
-- **Data Engine**: Auto-labeling pipeline with YOLOv8 + MobileSAM, shadow mode evaluation, hard case mining
+- **HydraNet-style Architecture** — Shared EfficientNet-B0 backbone with task-specific heads
+- **FCOS Anchor-Free Detection** — Modern detection without anchor boxes, multi-scale (P3/P4/P5)
+- **Production Pipeline** — Focal loss, mAP evaluation, W&B experiment tracking
+- **Cloud GPU Ready** — Full training infrastructure for NVIDIA H100 on RunPod
+- **Auto-Labeling** — YOLOv8 + MobileSAM pipeline for automated annotation
+
+---
+
+## Results
+
+| Metric | Value |
+|--------|-------|
+| mAP@50 | 4.0% (5 epochs, 1K subset) |
+| Training Loss | 2.78 → 1.45 |
+| Classification Loss | 0.43 → 0.24 |
+| Model Size | 8.5M parameters |
+
+*Trained on BDD100K with 10 object classes. Full training on 70K images in progress.*
+
+![Detection Example](assets/detection_example.jpg)
 
 ---
 
@@ -43,79 +67,53 @@ Built with PyTorch. Trained on BDD100K. Designed for real-world deployment.
                     └─────────────────────────────────────────┘
 ```
 
-**Model Stats:**
-- Parameters: 8.5M (efficient for edge deployment)
-- Backbone: EfficientNet-B0 (pretrained, frozen)
-- Detection: FCOS-style anchor-free with focal loss
-- Classes: 10 (person, car, truck, bus, bike, motor, rider, traffic light, traffic sign, train)
-
----
-
-## Training Pipeline
-
-### Loss Function
-- **Classification**: Focal loss (alpha=0.25, gamma=2.0) with proper normalization
-- **Bounding Box**: GIoU loss for accurate localization
-- **Centerness**: Binary cross-entropy for center-ness prediction
-
-### FCOS Target Assignment
-Multi-scale assignment based on object size:
-- P3 (stride 8): Objects < 32px
-- P4 (stride 16): Objects 32-64px
-- P5 (stride 32): Objects > 64px
-
-### Evaluation
-- mAP@50 and mAP@50:95 via torchmetrics
-- Per-class precision/recall analysis
-- W&B logging for experiment tracking
-
----
-
-## Results
-
-Training on BDD100K (70K images, 10 classes):
-
-| Metric | Value |
-|--------|-------|
-| Training Loss | 1.45 → decreasing |
-| Classification Loss | 0.28 |
-| BBox Loss | 0.57 |
-| Centerness Loss | 0.60 |
-
-*Loss curves show healthy convergence with proper normalization.*
+**Model Specs:**
+- **Parameters:** 8.5M (efficient for edge deployment)
+- **Backbone:** EfficientNet-B0 (ImageNet pretrained, frozen)
+- **Detection:** FCOS anchor-free with focal loss
+- **Classes:** 10 (person, car, truck, bus, bike, motor, rider, traffic light, traffic sign, train)
 
 ---
 
 ## Quick Start
 
-### Prerequisites
-- Python 3.11+
-- PyTorch 2.0+
-- CUDA (for GPU training)
-
-### Installation
-
 ```bash
+# Clone and install
 git clone https://github.com/ChandanaNandi/constellation.git
 cd constellation
 pip install -r requirements.txt
-```
 
-### Training
-
-```bash
-# Local training (M4 Pro / CPU)
+# Train locally (M4 Pro / CPU)
 python train.py --subset 1000 --epochs 5 --batch-size 8 --device mps
 
-# Full training (GPU)
+# Train on GPU
 python train.py --epochs 50 --batch-size 64 --device cuda --use-wandb
-```
 
-### Inference
-
-```bash
+# Run inference
 python inference.py --checkpoint checkpoints/best.pt --num-images 20
 ```
+
+---
+
+## Technical Deep Dive
+
+### Training Pipeline
+- **Classification:** Focal loss (α=0.25, γ=2.0) with proper positive sample normalization
+- **Bounding Box:** GIoU loss for accurate localization
+- **Centerness:** Binary cross-entropy for center-ness prediction
+
+### FCOS Target Assignment
+Multi-scale assignment based on object size:
+| Scale | Stride | Object Size |
+|-------|--------|-------------|
+| P3 | 8 | < 32px |
+| P4 | 16 | 32-64px |
+| P5 | 32 | > 64px |
+
+### Debugging Journey
+- Fixed focal loss normalization bug (cls_loss was 2 orders of magnitude too low)
+- Corrected FCOS size ranges for BDD100K object distribution
+- Validated training with overfit test on single batch
 
 ---
 
@@ -131,9 +129,9 @@ constellation/
 ├── data_engine/
 │   ├── data_loader.py      # BDD100K YOLO format loader
 │   ├── auto_labeler.py     # YOLOv8 + MobileSAM pipeline
-│   └── shadow_mode.py      # Prediction comparison
-├── train.py                # Training script with W&B
-├── inference.py            # Visualization and evaluation
+│   └── shadow_mode.py      # Model comparison
+├── train.py                # Training with W&B
+├── inference.py            # Visualization
 └── deployment/
     ├── export_onnx.py      # ONNX export
     └── quantize.py         # INT8 quantization
@@ -141,32 +139,17 @@ constellation/
 
 ---
 
-## Technical Highlights
+## What I Learned
 
-### Debugging & Validation
-- Identified and fixed focal loss normalization bug (cls_loss was 2 orders of magnitude too low)
-- Corrected FCOS size ranges for BDD100K object distribution
-- Validated with overfit test on single batch
+Building Constellation taught me:
 
-### Cloud Infrastructure
-- RunPod deployment with NVIDIA H100 (80GB HBM3)
-- tmux-based training for persistent sessions
-- W&B integration for remote monitoring
+1. **Multi-task architectures** — How shared backbones enable efficient inference across tasks
+2. **FCOS target assignment** — The math behind anchor-free detection and why proper size ranges matter
+3. **Loss debugging** — Finding normalization bugs requires systematic overfit testing
+4. **Cloud GPU workflow** — RunPod, tmux sessions, W&B remote monitoring
+5. **Data engineering** — Auto-labeling pipelines and shadow mode evaluation
 
-### Design Decisions
-- Frozen backbone for faster training and regularization
-- Anchor-free detection for better small object handling
-- Multi-scale features for objects from 8px to 512px
-
----
-
-## Dataset
-
-**BDD100K** - Berkeley Deep Drive dataset
-- 70K training images
-- 10K validation images
-- 10 object classes relevant to autonomous driving
-- YOLO format labels
+These are the skills Tesla's Autopilot team uses daily.
 
 ---
 
@@ -177,6 +160,15 @@ constellation/
 - [x] Phase 3: Training pipeline with cloud GPU support
 - [ ] Phase 4: Lane segmentation + drivable area heads
 - [ ] Phase 5: Shadow mode evaluation + INT8 quantization
+
+---
+
+## Dataset
+
+**BDD100K** — Berkeley Deep Drive
+- 70K training images, 10K validation
+- 10 object classes for autonomous driving
+- YOLO format labels
 
 ---
 
@@ -191,8 +183,8 @@ constellation/
 
 ## License
 
-MIT - see [LICENSE](LICENSE)
+MIT — see [LICENSE](LICENSE)
 
 ---
 
-**Built by Chandana Reddy** | [GitHub](https://github.com/ChandanaNandi)
+**Built by Chandana Reddy** | [GitHub](https://github.com/ChandanaNandi) | Open to AI/ML opportunities
