@@ -93,40 +93,36 @@ During H100 training, we encountered and fixed a CUDA device mismatch bug in `mo
 
 **Real-time driving decisions from perception outputs** — Tesla-style video processing with action overlay.
 
-![Constellation X Demo](assets/constellation_x_demo.gif)
+### Multi-City Demo
 
-*Frame-by-frame driving decisions: MAINTAIN (green), SLOW (orange), STOP (red), CAUTION (yellow) with real-time reasoning.*
+**Frankfurt (Urban)** — 267 frames, 24% STOP decisions
+![Frankfurt](assets/constellation_x_demo.gif)
+
+**Munster (Urban)** — 174 frames, 22% STOP decisions
+![Munster](assets/constellation_x_munster.gif)
+
+**Lindau (Rural)** — 59 frames, 3% STOP decisions
+![Lindau](assets/constellation_x_lindau.gif)
+
+*The decision engine correctly identifies scene complexity: urban scenes trigger more STOP/SLOW decisions due to pedestrians and traffic, while rural Lindau maintains speed on clear roads.*
+
+### Results Across Cities
+
+| City | Frames | MAINTAIN | SLOW | STOP | CAUTION |
+|------|--------|----------|------|------|---------|
+| Frankfurt | 267 | 32.2% | 32.2% | 23.6% | 12.0% |
+| Munster | 174 | 31.0% | 35.6% | 21.8% | 11.5% |
+| Lindau | 59 | 67.8% | 27.1% | 3.4% | 1.7% |
 
 ### Decision Engine Logic
 
-Priority-based decision making inspired by Tesla Autopilot:
-
-| Priority | Condition | Action | Example |
-|----------|-----------|--------|---------|
-| 1 | Vulnerable road user close + in path | **STOP** | Pedestrian crossing ahead |
-| 2 | Vehicle close + in path | **SLOW** | Car braking in front |
-| 3 | Vulnerable road user visible | **CAUTION** | Cyclist on roadside |
-| 4 | Low road visibility | **CAUTION** | Road < 10% of frame |
-| 5 | Path clear | **MAINTAIN** | Open road ahead |
-
-### Video Processing Pipeline
-
-```bash
-# Process Cityscapes validation sequence
-python video_processor.py --checkpoint checkpoints/best_v2.pt \
-    --input-dir data/cityscapes/leftImg8bit/val/frankfurt \
-    --output output/constellation_x.mp4 --fps 10
-```
-
-### Results (Frankfurt Sequence)
-
-| Metric | Value |
-|--------|-------|
-| Frames Processed | 267 |
-| MAINTAIN | 32.2% |
-| SLOW | 32.2% |
-| STOP | 23.6% |
-| CAUTION | 12.0% |
+| Priority | Condition | Action |
+|----------|-----------|--------|
+| 1 | Vulnerable road user close + in path | **STOP** |
+| 2 | Vehicle close + in path | **SLOW** |
+| 3 | Vulnerable road user visible | **CAUTION** |
+| 4 | Low road visibility | **CAUTION** |
+| 5 | Path clear | **MAINTAIN** |
 
 ### Architecture
 
