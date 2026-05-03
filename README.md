@@ -7,7 +7,7 @@
 
 **Multi-task vision system for autonomous driving, inspired by Tesla's HydraNet architecture.**
 
-Built with PyTorch. Trained on BDD100K. Designed for real-world deployment.
+Built with PyTorch. Trained on Cityscapes + BDD100K. Designed for real-world deployment.
 
 ![Constellation Detection Demo](assets/demo.gif)
 
@@ -17,10 +17,11 @@ Built with PyTorch. Trained on BDD100K. Designed for real-world deployment.
 
 ## Highlights
 
+- **Multi-Task Learning** — Detection + segmentation in one forward pass (84.9% IoU on Cityscapes)
 - **HydraNet-style Architecture** — Shared EfficientNet-B0 backbone with task-specific heads
 - **FCOS Anchor-Free Detection** — Modern detection without anchor boxes, multi-scale (P3/P4/P5)
-- **Production Pipeline** — Focal loss, mAP evaluation, W&B experiment tracking
-- **Cloud GPU Ready** — Full training infrastructure for NVIDIA H100 on RunPod
+- **Uncertainty-Weighted Loss** — Automatic task balancing via learned parameters
+- **Cloud GPU Trained** — Full training on NVIDIA H100 (RunPod) with runpodctl data transfer
 - **Auto-Labeling** — YOLOv8 + MobileSAM pipeline for automated annotation
 
 ---
@@ -37,6 +38,45 @@ Built with PyTorch. Trained on BDD100K. Designed for real-world deployment.
 *Trained on a 1,000-image subset of BDD100K (10 object classes) to validate the architecture and training pipeline. Cloud GPU infrastructure validated on NVIDIA H100; full-scale training deprioritized to focus on multi-task expansion (Phase 4).*
 
 ![Detection Example](assets/detection_example.jpg)
+
+---
+
+## Phase 4: Multi-Task Learning (HydraNetV2)
+
+**Detection + Segmentation on Cityscapes** — Full multi-task training on NVIDIA H100.
+
+![Multi-Task Visualization](assets/multitask_hero.jpg)
+
+*Simultaneous object detection (bounding boxes) and drivable area segmentation (road=green, sidewalk=purple) on Cityscapes.*
+
+### Results Comparison
+
+| Environment | Dataset | Epochs | Seg IoU | Det Loss | Seg Loss |
+|-------------|---------|--------|---------|----------|----------|
+| M4 Pro (local) | 200 images | 5 | 66.5% | 1.06 | 0.58 |
+| **H100 (cloud)** | **2,975 images** | **15** | **84.9%** | **0.76** | **0.20** |
+
+### HydraNetV2 Architecture
+
+- **Backbone:** EfficientNet-B0 (shared, frozen for 5 epochs then unfrozen)
+- **Detection Head:** FCOS anchor-free (8 classes: person, rider, car, truck, bus, train, motorcycle, bicycle)
+- **Segmentation Head:** 3 classes (background, road, sidewalk)
+- **Multi-Task Loss:** Uncertainty-weighted (Kendall et al., 2018)
+- **Parameters:** 9.14M total, 5.54M trainable
+
+### Training Configuration
+
+```bash
+# H100 training command (15 epochs, ~20 min)
+python train_multitask.py --epochs 15 --batch-size 16 --device cuda --lr 1e-4
+```
+
+### Engineering Notes
+
+During H100 training, we encountered and fixed a CUDA device mismatch bug in `model/fcos_targets.py`:
+- **Issue:** Empty bounding box lists defaulted to CPU device while model ran on CUDA
+- **Fix:** Added device parameter with auto-detection from non-empty boxes in batch
+- **Impact:** Training now handles images with no objects correctly on GPU
 
 ---
 
@@ -122,16 +162,22 @@ Multi-scale assignment based on object size:
 ```
 constellation/
 ├── model/
-│   ├── hydranet_v1.py      # Main model architecture
+│   ├── hydranet_v1.py      # Single-task detection model
+│   ├── hydranet_v2.py      # Multi-task detection + segmentation
 │   ├── fcos_targets.py     # FCOS target assignment
 │   ├── backbones/          # EfficientNet backbone
-│   └── heads/              # Detection, segmentation heads
+│   ├── heads/              # Detection, segmentation heads
+│   └── losses/             # Multi-task uncertainty loss
 ├── data_engine/
 │   ├── data_loader.py      # BDD100K YOLO format loader
+│   ├── cityscapes_loader.py # Cityscapes multi-task loader
+│   ├── augmentations.py    # Detection + segmentation augmentations
 │   ├── auto_labeler.py     # YOLOv8 + MobileSAM pipeline
 │   └── shadow_mode.py      # Model comparison
-├── train.py                # Training with W&B
-├── inference.py            # Visualization
+├── train.py                # BDD100K detection training
+├── train_multitask.py      # Cityscapes multi-task training
+├── inference.py            # Detection visualization
+├── inference_multitask.py  # Multi-task visualization
 └── deployment/
     ├── export_onnx.py      # ONNX export
     └── quantize.py         # INT8 quantization
@@ -143,11 +189,13 @@ constellation/
 
 Building Constellation taught me:
 
-1. **Multi-task architectures** — How shared backbones enable efficient inference across tasks
-2. **FCOS target assignment** — The math behind anchor-free detection and why proper size ranges matter
-3. **Loss debugging** — Finding normalization bugs requires systematic overfit testing
-4. **Cloud GPU workflow** — RunPod, tmux sessions, W&B remote monitoring
-5. **Data engineering** — Auto-labeling pipelines and shadow mode evaluation
+1. **Multi-task architectures** — How shared backbones enable efficient inference across tasks (detection + segmentation in one forward pass)
+2. **Uncertainty-weighted losses** — Using learnable parameters to balance task losses automatically (Kendall et al., 2018)
+3. **FCOS target assignment** — The math behind anchor-free detection and why proper size ranges matter
+4. **Loss debugging** — Finding normalization bugs requires systematic overfit testing
+5. **Cloud GPU workflow** — RunPod H100, tmux sessions, runpodctl data transfer, W&B remote monitoring
+6. **Data engineering** — Auto-labeling pipelines, Cityscapes instance mask parsing, shadow mode evaluation
+7. **CUDA debugging** — Tracking down device mismatches when tensors end up on different devices
 
 These are the skills Tesla's Autopilot team uses daily.
 
@@ -158,17 +206,23 @@ These are the skills Tesla's Autopilot team uses daily.
 - [x] Phase 1: Data engine with auto-labeling
 - [x] Phase 2: HydraNet architecture with FCOS detection
 - [x] Phase 3: Training pipeline with cloud GPU support
-- [ ] Phase 4: Lane segmentation + drivable area heads
+- [x] Phase 4: Multi-task learning (detection + segmentation) — **84.9% IoU on Cityscapes**
 - [ ] Phase 5: Shadow mode evaluation + INT8 quantization
 
 ---
 
-## Dataset
+## Datasets
 
-**BDD100K** — Berkeley Deep Drive
+**BDD100K** — Berkeley Deep Drive (Phase 1-3)
 - 70K training images, 10K validation
 - 10 object classes for autonomous driving
 - YOLO format labels
+
+**Cityscapes** — Urban Scene Understanding (Phase 4)
+- 2,975 training images, 500 validation
+- 8 detection classes (person, rider, car, truck, bus, train, motorcycle, bicycle)
+- 3 segmentation classes (background, road, sidewalk)
+- Instance + semantic masks for multi-task learning
 
 ---
 
@@ -176,7 +230,9 @@ These are the skills Tesla's Autopilot team uses daily.
 
 - [FCOS: Fully Convolutional One-Stage Object Detection](https://arxiv.org/abs/1904.01355)
 - [EfficientNet: Rethinking Model Scaling](https://arxiv.org/abs/1905.11946)
+- [Multi-Task Learning Using Uncertainty to Weigh Losses](https://arxiv.org/abs/1705.07115) — Kendall et al., 2018
 - [BDD100K: A Diverse Driving Dataset](https://arxiv.org/abs/1805.04687)
+- [The Cityscapes Dataset](https://arxiv.org/abs/1604.01685)
 - Tesla AI Day presentations on HydraNet architecture
 
 ---
