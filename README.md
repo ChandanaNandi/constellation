@@ -89,6 +89,84 @@ During H100 training, we encountered and fixed a CUDA device mismatch bug in `mo
 
 ---
 
+## Phase 5: Constellation X — Decision Engine
+
+**Real-time driving decisions from perception outputs** — Tesla-style video processing with action overlay.
+
+![Constellation X Demo](assets/constellation_x_demo.gif)
+
+*Frame-by-frame driving decisions: MAINTAIN (green), SLOW (orange), STOP (red), CAUTION (yellow) with real-time reasoning.*
+
+### Decision Engine Logic
+
+Priority-based decision making inspired by Tesla Autopilot:
+
+| Priority | Condition | Action | Example |
+|----------|-----------|--------|---------|
+| 1 | Vulnerable road user close + in path | **STOP** | Pedestrian crossing ahead |
+| 2 | Vehicle close + in path | **SLOW** | Car braking in front |
+| 3 | Vulnerable road user visible | **CAUTION** | Cyclist on roadside |
+| 4 | Low road visibility | **CAUTION** | Road < 10% of frame |
+| 5 | Path clear | **MAINTAIN** | Open road ahead |
+
+### Video Processing Pipeline
+
+```bash
+# Process Cityscapes validation sequence
+python video_processor.py --checkpoint checkpoints/best_v2.pt \
+    --input-dir data/cityscapes/leftImg8bit/val/frankfurt \
+    --output output/constellation_x.mp4 --fps 10
+```
+
+### Results (Frankfurt Sequence)
+
+| Metric | Value |
+|--------|-------|
+| Frames Processed | 267 |
+| MAINTAIN | 32.2% |
+| SLOW | 32.2% |
+| STOP | 23.6% |
+| CAUTION | 12.0% |
+
+### Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Video Frame Input                         │
+└─────────────────────────────┬───────────────────────────────┘
+                              │
+┌─────────────────────────────▼───────────────────────────────┐
+│                    HydraNet V2 (9.14M params)               │
+│    ┌────────────────┐   ┌────────────────────────────┐      │
+│    │ Detection Head │   │   Segmentation Head        │      │
+│    │ (8 classes)    │   │   (road/sidewalk/bg)       │      │
+│    └───────┬────────┘   └─────────────┬──────────────┘      │
+└────────────┼──────────────────────────┼─────────────────────┘
+             │                          │
+┌────────────▼──────────────────────────▼─────────────────────┐
+│                    Decision Engine                           │
+│    • Danger zone analysis (center 40% of frame)             │
+│    • Close object detection (height > 15% of frame)         │
+│    • Vulnerable road user priority                          │
+│    • Road visibility check                                  │
+└─────────────────────────────┬───────────────────────────────┘
+                              │
+┌─────────────────────────────▼───────────────────────────────┐
+│               Annotated Video Output                         │
+│    • Detection boxes with confidence                        │
+│    • Segmentation overlay (road=green, sidewalk=purple)     │
+│    • Action decision (top-right)                            │
+│    • Reasoning text (bottom)                                │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Key Files
+
+- `decision_engine.py` — Priority-based decision logic with Detection/Decision dataclasses
+- `video_processor.py` — Video pipeline with NMS, visualization, and MP4 output
+
+---
+
 ## Architecture
 
 ```
@@ -187,6 +265,8 @@ constellation/
 ├── train_multitask.py      # Cityscapes multi-task training
 ├── inference.py            # Detection visualization
 ├── inference_multitask.py  # Multi-task visualization
+├── decision_engine.py      # Driving decision logic (Phase 5)
+├── video_processor.py      # Video pipeline with decisions (Phase 5)
 └── deployment/
     ├── export_onnx.py      # ONNX export
     └── quantize.py         # INT8 quantization
@@ -205,6 +285,8 @@ Building Constellation taught me:
 5. **Cloud GPU workflow** — RunPod H100, tmux sessions, runpodctl data transfer, W&B remote monitoring
 6. **Data engineering** — Auto-labeling pipelines, Cityscapes instance mask parsing, shadow mode evaluation
 7. **CUDA debugging** — Tracking down device mismatches when tensors end up on different devices
+8. **Decision engines** — Priority-based reasoning systems that translate perception into action (vulnerable road user prioritization)
+9. **Video pipelines** — Frame-by-frame processing with NMS, visualization overlays, and MP4 encoding
 
 These are the skills Tesla's Autopilot team uses daily.
 
@@ -216,7 +298,8 @@ These are the skills Tesla's Autopilot team uses daily.
 - [x] Phase 2: HydraNet architecture with FCOS detection
 - [x] Phase 3: Training pipeline with cloud GPU support
 - [x] Phase 4: Multi-task learning (detection + segmentation) — **84.9% IoU on Cityscapes**
-- [ ] Phase 5: Shadow mode evaluation + INT8 quantization
+- [x] Phase 5: Constellation X — Decision engine + video pipeline
+- [ ] Phase 6: Shadow mode evaluation + INT8 quantization
 
 ---
 
