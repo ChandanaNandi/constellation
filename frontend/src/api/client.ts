@@ -46,13 +46,13 @@ export const api = {
 
   // Predictions
   runInference: async (imageId: number, modelId: number) => {
-    const response = await apiClient.post('/api/predict', { imageId, modelId })
+    const response = await apiClient.post('/api/predictions/predict', { image_id: imageId, model_id: modelId })
     return response.data
   },
 
   // Shadow Mode
   getDisagreements: async (params?: { limit?: number; offset?: number }) => {
-    const response = await apiClient.get('/api/disagreements', { params })
+    const response = await apiClient.get('/api/predictions/disagreements', { params })
     return response.data
   },
 }

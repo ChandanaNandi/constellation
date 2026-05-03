@@ -110,3 +110,15 @@ Thumbs.db
 *.log
 logs/
 *.tar.gz
+
+# Large artifacts (use LFS or external storage for these)
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.zip
+!data/.gitkeep
+
+# Temporary outputs (keep example visualizations in assets/)
+output/temp/
+output/*.mp4
