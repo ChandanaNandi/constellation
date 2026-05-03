@@ -78,6 +78,12 @@ During H100 training, we encountered and fixed a CUDA device mismatch bug in `mo
 - **Fix:** Added device parameter with auto-detection from non-empty boxes in batch
 - **Impact:** Training now handles images with no objects correctly on GPU
 
+### H100 Inference Sample
+
+![H100 Inference](output/multitask_h100/multitask_001.jpg)
+
+*Frankfurt validation set — detection boxes + drivable area segmentation at 84.9% IoU.*
+
 ---
 
 ## Architecture
