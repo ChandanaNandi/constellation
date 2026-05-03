@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { X, Tag, Calendar, Database } from 'lucide-react'
+import { X, Calendar, Database } from 'lucide-react'
 
 interface Label {
   id: number

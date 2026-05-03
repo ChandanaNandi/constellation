@@ -3,7 +3,7 @@ import { Sparkles, Database, Brain, Gauge, Settings } from 'lucide-react'
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: Sparkles },
-  { name: 'Data Engine', href: '/data', icon: Database },
+  { name: 'Data Engine (BDD100K)', href: '/data', icon: Database },
   { name: 'Models', href: '/models', icon: Brain },
   { name: 'Shadow Mode', href: '/shadow', icon: Gauge },
 ]

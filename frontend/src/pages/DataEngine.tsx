@@ -29,13 +29,20 @@ export default function DataEngine() {
   const [loading, setLoading] = useState(true)
   const [selectedImage, setSelectedImage] = useState<any>(null)
   const [isLabeling, setIsLabeling] = useState<number | null>(null)
+  const [statusFilter, setStatusFilter] = useState('')
+  const [datasetFilter, setDatasetFilter] = useState('')
 
   const limit = 20
 
   const fetchImages = async () => {
     setLoading(true)
     try {
-      const data: ImageListResponse = await api.getImages({ limit, offset })
+      const data: ImageListResponse = await api.getImages({
+        limit,
+        offset,
+        status: statusFilter || undefined,
+        dataset: datasetFilter || undefined,
+      })
       setImages(data.images)
       setTotal(data.total)
     } catch (err) {
@@ -47,7 +54,7 @@ export default function DataEngine() {
 
   useEffect(() => {
     fetchImages()
-  }, [offset])
+  }, [offset, statusFilter, datasetFilter])
 
   const handleImageClick = async (image: Image) => {
     try {
@@ -85,7 +92,7 @@ export default function DataEngine() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Data Engine</h1>
+          <h1 className="text-3xl font-bold text-slate-900">Data Engine (BDD100K Labeling Ops)</h1>
           <p className="mt-1 text-slate-600">
             {total} images in database
           </p>
@@ -110,17 +117,37 @@ export default function DataEngine() {
       {/* Filters */}
       <div className="flex items-center gap-4 mb-6 p-4 bg-white rounded-lg border border-slate-200">
         <Filter className="h-5 w-5 text-slate-400" />
-        <select className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm">
+        <select
+          value={statusFilter}
+          onChange={(e) => {
+            setOffset(0)
+            setStatusFilter(e.target.value)
+          }}
+          className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm"
+        >
           <option value="">All Status</option>
           <option value="pending">Pending</option>
           <option value="labeled">Labeled</option>
           <option value="reviewed">Reviewed</option>
         </select>
-        <select className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm">
+        <select
+          value={datasetFilter}
+          onChange={(e) => {
+            setOffset(0)
+            setDatasetFilter(e.target.value)
+          }}
+          className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm"
+        >
           <option value="">All Datasets</option>
+          <option value="cityscapes">Cityscapes</option>
           <option value="bdd100k">BDD100K</option>
           <option value="uploaded">Uploaded</option>
         </select>
+      </div>
+
+      <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+        This page is for labeling operations on database images (primarily BDD100K). HydraNet V2 model demos are
+        Cityscapes-aligned and should be validated in the dedicated inference demo flow.
       </div>
 
       {/* Image Grid */}

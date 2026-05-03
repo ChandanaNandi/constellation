@@ -18,6 +18,15 @@ Built with PyTorch. Trained on Cityscapes + BDD100K. Designed for real-world dep
 
 ---
 
+## Two Surfaces (No Confusion)
+
+- **Local React Data Engine (`/data`)**: BDD100K-focused labeling operations (ingest, review, auto-label workflows).
+- **Hugging Face Demo**: Cityscapes-aligned HydraNet V2 inference showcase (detection + segmentation).
+
+This split is intentional: the Data Engine demonstrates production data tooling, while the HF demo demonstrates model performance on the aligned training domain.
+
+---
+
 ## Highlights
 
 - **Multi-Task Learning** — Detection + segmentation in one forward pass (84.9% IoU on Cityscapes)

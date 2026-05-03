@@ -11,7 +11,11 @@ RUN apt-get update && apt-get install -y \
 # Copy application code
 COPY . .
 
-# Install Python dependencies
+# Install CPU-only PyTorch first to avoid pulling CUDA wheels
+RUN pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu \
+    torch torchvision
+
+# Install application dependencies
 RUN pip install --no-cache-dir .
 
 EXPOSE 8000

@@ -31,7 +31,7 @@ export default function Dashboard() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-slate-900">Dashboard</h1>
         <p className="mt-2 text-slate-600">
-          Multi-task vision system for autonomous driving scenes
+          Two-surface system: BDD100K labeling ops (local UI) + Cityscapes-aligned HydraNet V2 demo (HF Space)
         </p>
       </div>
 

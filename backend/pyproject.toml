@@ -17,6 +17,12 @@ dependencies = [
     "redis>=5.0.1",
     "python-multipart>=0.0.6",
     "aiofiles>=23.2.1",
+    # ML inference dependencies
+    "torch>=2.1.2",
+    "torchvision>=0.16.2",
+    "timm>=0.9.12",
+    "pillow>=10.2.0",
+    "numpy>=1.26.3",
 ]
 
 [project.optional-dependencies]

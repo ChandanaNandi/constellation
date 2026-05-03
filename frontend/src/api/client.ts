@@ -23,7 +23,12 @@ export const api = {
     return response.data
   },
 
-  getImages: async (params?: { limit?: number; offset?: number }) => {
+  getImages: async (params?: {
+    limit?: number
+    offset?: number
+    status?: string
+    dataset?: string
+  }) => {
     const response = await apiClient.get('/api/images', { params })
     return response.data
   },

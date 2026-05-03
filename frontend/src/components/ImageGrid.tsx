@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Eye, Tag, Loader2 } from 'lucide-react'
 
 interface Image {
@@ -69,6 +68,11 @@ export default function ImageGrid({ images, onImageClick, onAutoLabel, isLabelin
             <p className="text-xs text-slate-600 truncate" title={image.filename}>
               {image.filename}
             </p>
+            <div className="mt-1">
+              <span className="inline-flex text-xs px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">
+                {image.dataset || 'unknown'}
+              </span>
+            </div>
             <div className="flex items-center justify-between mt-1">
               <span className="text-xs text-slate-400">
                 {image.width}x{image.height}
