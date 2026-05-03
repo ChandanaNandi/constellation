@@ -57,6 +57,7 @@ class FCOSTargetAssigner:
         boxes: torch.Tensor,
         labels: torch.Tensor,
         image_size: tuple[int, int],
+        device: torch.device = None,
     ) -> dict[str, dict[str, torch.Tensor]]:
         """Assign targets for a single image across all scales.
 
@@ -74,7 +75,7 @@ class FCOSTargetAssigner:
             }
         """
         H, W = image_size
-        device = boxes.device if len(boxes) > 0 else torch.device('cpu')
+        device = device if device is not None else (boxes.device if len(boxes) > 0 else torch.device('cpu'))
 
         # Convert normalized coords to pixel coords
         if len(boxes) > 0:
@@ -176,6 +177,7 @@ class FCOSTargetAssigner:
         boxes_batch: list[torch.Tensor],
         labels_batch: list[torch.Tensor],
         image_size: tuple[int, int],
+        device: torch.device = None,
     ) -> dict[str, dict[str, torch.Tensor]]:
         """Assign targets for a batch of images.
 
@@ -188,8 +190,16 @@ class FCOSTargetAssigner:
             Dictionary with batched targets for each scale
         """
         batch_size = len(boxes_batch)
+        # Auto-detect device from first non-empty boxes if not provided
+        if device is None:
+            for boxes in boxes_batch:
+                if len(boxes) > 0:
+                    device = boxes.device
+                    break
+            if device is None:
+                device = torch.device('cpu')
         all_targets = [
-            self.assign_targets_single_image(boxes, labels, image_size)
+            self.assign_targets_single_image(boxes, labels, image_size, device=device)
             for boxes, labels in zip(boxes_batch, labels_batch)
         ]
 
