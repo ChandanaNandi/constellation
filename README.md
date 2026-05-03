@@ -4,6 +4,9 @@
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-red.svg)](https://pytorch.org)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Status](https://img.shields.io/badge/Status-Active-brightgreen.svg)]()
+[![Demo](https://img.shields.io/badge/🤗%20Demo-Live-yellow.svg)](https://huggingface.co/spaces/cnandi/constellation)
+
+**🚀 [Try the Live Demo](https://huggingface.co/spaces/cnandi/constellation)** — Upload any driving image and see detection + segmentation in action!
 
 **Multi-task vision system for autonomous driving, inspired by Tesla's HydraNet architecture.**
 
