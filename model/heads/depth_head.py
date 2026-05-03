@@ -1,3 +1,4 @@
+
 """Depth estimation head for monocular depth prediction.
 
 Predicts per-pixel depth (distance from camera) in meters.
